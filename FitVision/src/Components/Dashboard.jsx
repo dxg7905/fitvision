@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Coffee, Utensils, Moon, Flame, PlusCircle, ChevronDown } from 'lucide-react';
+import { ChevronDown, Coffee, Utensils, Moon } from 'lucide-react'; // Make sure you import these icons
 import { motion, AnimatePresence } from 'framer-motion';
+import HealthStatistics from './HealthStatistics';
+import WorkoutLog from './WorkoutLog';
 
 const mockData = {
   caloriesBurned: [
@@ -38,7 +40,6 @@ const mockData = {
 
 const Dashboard = () => {
   const [data, setData] = useState(mockData);
-  const [newWorkout, setNewWorkout] = useState({ date: '', type: '', duration: '' });
   const [selectedGraph, setSelectedGraph] = useState('caloriesBurned');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -57,21 +58,6 @@ const Dashboard = () => {
         [meal]: value,
       },
     }));
-  };
-
-  const handleWorkoutLog = (e) => {
-    e.preventDefault();
-    const today = new Date().toISOString().split('T')[0];
-    setData(prevData => ({
-      ...prevData,
-      workoutLogs: [...prevData.workoutLogs, { ...newWorkout, date: today }],
-      stats: {
-        ...prevData.stats,
-        totalWorkouts: prevData.stats.totalWorkouts + 1,
-      },
-    }));
-    setNewWorkout({ date: '', type: '', duration: '' });
-    updateStreak();
   };
 
   const updateStreak = () => {
@@ -171,20 +157,7 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-white rounded-3xl shadow-lg p-6"
-          >
-            <h2 className="text-2xl font-semibold mb-4">Health Statistics</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <StatCard icon={<Activity />} label="Total Calories Burned" value={data.stats.totalCalories} />
-              <StatCard icon={<Coffee />} label="Total Workouts" value={data.stats.totalWorkouts} />
-              <StatCard icon={<Activity />} label="Avg. Heart Rate" value={`${data.stats.avgHeartRate} bpm`} />
-              <StatCard icon={<Flame />} label="Workout Streak" value={data.streak} />
-            </div>
-          </motion.div>
+          <HealthStatistics data={data} />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -200,55 +173,16 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            className="bg-white rounded-3xl shadow-lg p-6 md:col-span-2"
-          >
-            <h2 className="text-2xl font-semibold mb-4">Workout Log</h2>
-            <form onSubmit={handleWorkoutLog} className="flex flex-wrap gap-4 mb-4">
-              <input
-                type="text"
-                placeholder="Workout type"
-                value={newWorkout.type}
-                onChange={(e) => setNewWorkout({...newWorkout, type: e.target.value})}
-                className="flex-grow p-2 border rounded-3xl"
-              />
-              <input
-                type="number"
-                placeholder="Duration (minutes)"
-                value={newWorkout.duration}
-                onChange={(e) => setNewWorkout({...newWorkout, duration: e.target.value})}
-                className="flex-grow p-2 border rounded-3xl"
-              />
-              <button type="submit" className="bg-purple-500 text-white p-2 rounded-3xl flex items-center">
-                <PlusCircle className="mr-2" /> Log Workout
-              </button>
-            </form>
-            <div className="max-h-60 overflow-y-auto">
-              {data.workoutLogs.map((log, index) => (
-                <div key={index} className="bg-gray-100 p-2 mb-2 rounded-3xl">
-                  <p><strong>{log.date}</strong>: {log.type} for {log.duration} minutes</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          <WorkoutLog
+            data={data}
+            setData={setData}
+            updateStreak={updateStreak}
+          />
         </div>
       </div>
     </div>
   );
 };
-
-const StatCard = ({ icon, label, value }) => (
-  <div className="flex items-center p-4 bg-gray-100 rounded-3xl">
-    <div className="mr-4 text-purple-500">{icon}</div>
-    <div>
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="text-lg font-semibold">{value}</p>
-    </div>
-  </div>
-);
 
 const MealInput = ({ icon, meal, value, onChange }) => (
   <div className="flex items-center bg-gray-100 rounded-3xl p-2">
